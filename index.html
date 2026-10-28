@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audio → Emotional Story Video</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Audio → Emotional Story Video</h1>
+    <p class="subtitle">Runs locally in your browser · only stock footage needs a free key</p>
+  </header>
+
+  <main>
+    <!-- ============ 1. Input + options ============ -->
+    <section class="panel controls">
+      <div class="row">
+        <label class="file-drop" id="drop">
+          <input type="file" id="audioInput" accept="audio/*,video/*" hidden />
+          <span id="fileLabel">Choose an audio or video file (or drag &amp; drop)</span>
+        </label>
+      </div>
+
+      <div class="row options">
+        <label>
+          Transcription model
+          <select id="asrModel">
+            <option value="Xenova/whisper-base.en" selected>whisper-base.en (recommended)</option>
+            <option value="Xenova/whisper-small.en">whisper-small.en (most accurate, slower)</option>
+            <option value="Xenova/whisper-tiny.en">whisper-tiny.en (fastest, least accurate)</option>
+            <option value="Xenova/whisper-tiny">whisper-tiny (multilingual)</option>
+          </select>
+        </label>
+        <label>
+          Aspect
+          <select id="aspect">
+            <option value="9:16" selected>9:16 (Reels / Stories)</option>
+            <option value="1:1">1:1 (Square)</option>
+            <option value="16:9">16:9 (Landscape)</option>
+          </select>
+        </label>
+        <label>
+          Reel mode
+          <select id="reelMode">
+            <option value="story" selected>Story (footage + captions)</option>
+            <option value="talking">Talking video + image overlays</option>
+          </select>
+        </label>
+        <label>
+          Captions
+          <select id="captionMode">
+            <option value="big" selected>Big (reel)</option>
+            <option value="small">Small (bottom)</option>
+            <option value="off">Off</option>
+          </select>
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" id="useWebGPU" />
+          Try WebGPU (faster, Chrome/Edge)
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" id="analyzeVoice" checked />
+          Analyze voice tone
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" id="denoise" />
+          Reduce background noise
+        </label>
+      </div>
+
+      <div class="row options">
+        <label>
+          Stock photos
+          <select id="stockProvider">
+            <option value="pexels" selected>Pexels</option>
+            <option value="pixabay">Pixabay</option>
+          </select>
+        </label>
+        <label>
+          Footage
+          <select id="footageType">
+            <option value="video" selected>Video clips</option>
+            <option value="photo">Photos</option>
+          </select>
+        </label>
+        <label class="grow">
+          API key (free — Pexels: pexels.com/api · Pixabay: pixabay.com/api/docs)
+          <input type="password" id="apiKey" placeholder="Paste your free key (stored only in this browser)" autocomplete="off" />
+        </label>
+        <label>
+          Background music (optional)
+          <input type="file" id="musicInput" accept="audio/*" />
+        </label>
+        <label>
+          Your photos (optional — auto-placed by content)
+          <input type="file" id="userPhotosInput" accept="image/*" multiple />
+        </label>
+      </div>
+
+      <div class="row buttons">
+        <button id="analyzeBtn" disabled>1 · Analyze</button>
+        <button id="footageBtn" class="secondary" disabled>2 · Find footage</button>
+        <button id="renderBtn" class="secondary" disabled>3 · Make video</button>
+      </div>
+
+      <div class="row">
+        <audio id="player" controls hidden></audio>
+        <div id="status" class="status"></div>
+        <progress id="progress" max="100" value="0" hidden></progress>
+      </div>
+    </section>
+
+    <!-- ============ 2. Storyboard (footage per scene) ============ -->
+    <section class="panel" id="storyboardPanel" hidden>
+      <h2>Storyboard <span class="hint">· one clip per sentence · click a card to swap the photo</span></h2>
+      <div id="storyboard" class="storyboard"></div>
+    </section>
+
+    <!-- ============ 3. Video preview + export ============ -->
+    <section class="panel video-panel" id="videoPanel" hidden>
+      <h2>Video</h2>
+      <div class="stage">
+        <canvas id="stage" width="1080" height="1920"></canvas>
+      </div>
+      <div class="row buttons">
+        <button id="playBtn" class="secondary">▶ Play preview</button>
+        <button id="recordBtn">● Render &amp; download (WebM)</button>
+        <button id="mp4Btn" class="secondary" disabled>Convert last render to MP4</button>
+      </div>
+      <a id="downloadLink" hidden></a>
+      <p class="hint" id="videoHint"></p>
+    </section>
+
+    <!-- ============ Emotion details ============ -->
+    <section class="panel" id="resultsPanel" hidden>
+      <h2>Per-sentence emotions</h2>
+      <table id="resultsTable">
+        <thead>
+          <tr><th>#</th><th>Time</th><th>Sentence</th><th>Voice (tone)</th><th>Words (text)</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <details class="transcript">
+        <summary>Full transcript</summary>
+        <p id="transcript"></p>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <p>Models download once from Hugging Face and cache in your browser. Stock photos come from Pexels (free). Nothing is uploaded.</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

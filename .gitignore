@@ -1,0 +1,12 @@
+# scratch / research artifacts
+plan.txt
+synth.txt
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# node (in case tooling is added later)
+node_modules/
